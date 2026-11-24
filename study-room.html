@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0d12">
+<title>CAVE — Study Room</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0d12;--panel:#141923;--panel2:#1b2330;--line:#293344;--txt:#edf2fa;--muted:#9ba9bb;--accent:#9b8cff;--good:#51d6a0;--bad:#ff727f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1a2030 0,var(--bg) 55%);color:var(--txt);font-family:Tahoma,Arial,sans-serif;min-height:100vh}
+.wrap{max-width:1050px;margin:auto;padding:22px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.brand{font-size:22px;font-weight:800;letter-spacing:1px}.brand small{display:block;font-size:12px;color:var(--muted);font-weight:400;letter-spacing:0;margin-top:5px}
+.panel{background:linear-gradient(145deg,var(--panel),#111722);border:1px solid var(--line);border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 12px 35px #0003}
+h1,h2,h3{margin:0 0 14px}h2{font-size:18px}h3{font-size:15px}
+input,select,button{font:inherit;border-radius:10px;border:1px solid var(--line);padding:11px 12px;background:#0e141e;color:var(--txt);min-width:0}
+input,select{width:100%}button{cursor:pointer;background:var(--panel2);font-weight:700}button.primary{background:var(--accent);color:#100d24;border-color:transparent}button.good{background:#164b3b;border-color:#24785c}button.danger{background:#4b2029;border-color:#71323e}
+button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.tabs button.active{border-color:var(--accent);background:#292344;color:#e8e2ff}
+.muted{color:var(--muted);font-size:13px}.hidden{display:none!important}.status{padding:9px 12px;border-radius:10px;background:#182232;color:var(--muted);margin:10px 0;font-size:13px}.status.error{background:#3b1e27;color:#ffb8c0}.status.ok{background:#14352d;color:#a6f1d2}
+.timer{font-size:clamp(38px,8vw,66px);font-weight:800;letter-spacing:2px;text-align:center;margin:18px 0;font-variant-numeric:tabular-nums}.center{text-align:center}.item{padding:12px;border:1px solid var(--line);border-radius:12px;background:#101722;margin:8px 0}.item strong{display:block;margin-bottom:5px}.pill{font-size:11px;color:#d9d1ff;background:#30294c;padding:4px 8px;border-radius:30px;display:inline-block;margin-inline-start:5px}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:right;padding:10px;border-bottom:1px solid var(--line)}th{color:var(--muted)}
+a{color:#c9beff}.auth{max-width:440px;margin:8vh auto}.foot{color:var(--muted);font-size:11px;text-align:center;margin:25px}
+@media(max-width:600px){.wrap{padding:13px}.panel{padding:14px}.row>*{flex-basis:100%}.top{align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><div class="brand">CAVE <span style="color:var(--accent)">/</span> STUDY ROOM<small>اتاق مطالعه گروهی</small></div><div class="row" style="flex:0 1 auto"><span id="who" class="muted"></span><button id="logout" class="hidden">خروج</button></div></header>
+  <div id="message" class="status">در حال اتصال به سرویس…</div>
+  <section id="auth" class="panel auth">
+    <h2>ورود به اتاق مطالعه</h2>
+    <div class="row"><button id="loginMode" class="active">ورود</button><button id="registerMode">ساخت حساب</button></div>
+    <form id="authForm">
+      <p><input id="username" autocomplete="username" placeholder="نام کاربری (انگلیسی)" required minlength="3" maxlength="32"></p>
+      <p><input id="password" type="password" autocomplete="current-password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" required minlength="8"></p>
+      <button class="primary" style="width:100%" id="authSubmit">ورود</button>
+    </form>
+    <p class="muted">حساب هر نفر مستقل است. رمز عبور به‌صورت خام ذخیره نمی‌شود.</p>
+  </section>
+  <main id="app" class="hidden">
+    <nav class="tabs">
+      <button data-tab="timer" class="active">تایمر و افراد آنلاین</button>
+      <button data-tab="rooms">اتاق‌ها</button>
+      <button data-tab="history">تاریخچه</button>
+      <button data-tab="rank">رتبه‌بندی</button>
+    </nav>
+    <section id="tab-timer">
+      <div class="panel">
+        <h2>جلسه مطالعه من</h2>
+        <div class="grid">
+          <label>درس / موضوع<input id="subject" value="مطالعه" maxlength="80"></label>
+          <label>نوع مطالعه<select id="studyType"><option>تشریحی</option><option>تستی</option></select></label>
+          <label>اتاق<select id="studyRoom"><option value="">Global Room</option></select></label>
+        </div>
+        <div id="myTimer" class="timer">00:00:00</div>
+        <div class="row"><button id="start" class="primary">شروع تایمر</button><button id="stop" class="danger" disabled>پایان مطالعه</button></div>
+        <p class="muted">زمان جلسه از ساعت ثبت‌شده روی سرور محاسبه می‌شود؛ با بستن صفحه نیز جلسه فعال باقی می‌ماند.</p>
+      </div>
+      <div class="panel"><h2>افراد در حال مطالعه</h2><div id="activeList" class="muted">هنوز اطلاعاتی دریافت نشده است.</div></div>
+      <div class="panel">
+        <h2>ثبت دستی مطالعه</h2>
+        <div class="grid">
+          <label>درس<input id="manualSubject" value="مطالعه" maxlength="80"></label>
+          <label>نوع<select id="manualType"><option>تشریحی</option><option>تستی</option></select></label>
+          <label>از ساعت<input id="manualStart" type="datetime-local"></label>
+          <label>تا ساعت<input id="manualEnd" type="datetime-local"></label>
+        </div>
+        <p><button id="manualSave" class="good">ثبت بازه مطالعه</button></p>
+        <p class="muted">بازه‌های تکراری یا هم‌پوشان توسط سرور رد می‌شوند. حداکثر طول هر بازه ۲۴ ساعت است.</p>
+      </div>
+    </section>
+    <section id="tab-rooms" class="hidden">
+      <div class="panel"><h2>ساخت اتاق جدید</h2><div class="row"><input id="newRoomName" placeholder="نام اتاق"><select id="newRoomPrivate"><option value="false">عمومی</option><option value="true">خصوصی با کد دعوت</option></select><button id="createRoom" class="primary">ساخت اتاق</button></div></div>
+      <div class="panel"><h2>اتاق‌های در دسترس</h2><div id="roomList"></div></div>
+    </section>
+    <section id="tab-history" class="hidden"><div class="panel"><h2>تاریخچه مطالعه من</h2><div id="historyList"></div></div></section>
+    <section id="tab-rank" class="hidden"><div class="panel"><h2>رتبه‌بندی</h2><div class="row"><select id="rankPeriod"><option value="day">امروز</option><option value="week" selected>این هفته</option><option value="month">این ماه</option><option value="all">همه زمان‌ها</option></select><button id="loadRank" class="primary">بروزرسانی</button></div><div id="rankList"></div></div></section>
+  </main>
+  <div class="foot">CAVE Study Room · داده‌های مطالعه در سرور CAVE ذخیره می‌شوند.</div>
+</div>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script>
+(() => {
+'use strict';
+const API = 'https://cave-api.gerdoo.app';
+const KEY = 'cave.studyRoom.token.v1';
+let token = localStorage.getItem(KEY) || '';
+let user = null, mode = 'login', activeMine = null, socket = null, tickHandle = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const msg = (s, kind='') => { $('message').textContent=s; $('message').className='status '+kind; };
+async function api(path, opts={}) {
+  const headers = {'Content-Type':'application/json', ...(opts.headers||{})};
+  if(token) headers.Authorization='Bearer '+token;
+  let res;
+  try { res=await fetch(API+path,{...opts,headers}); }
+  catch(e){ throw new Error('ارتباط با سرور برقرار نشد؛ اتصال اینترنت و آدرس API را بررسی کن.'); }
+  let data={}; try{data=await res.json()}catch{}
+  if(!res.ok) throw new Error(data.error || ('خطای سرور: '+res.status));
+  return data;
+}
+function showApp(){
+  $('auth').classList.add('hidden'); $('app').classList.remove('hidden'); $('logout').classList.remove('hidden');
+  $('who').textContent=user?.username||'';
+}
+function showAuth(){ $('auth').classList.remove('hidden'); $('app').classList.add('hidden'); $('logout').classList.add('hidden'); $('who').textContent=''; }
+$('loginMode').onclick=()=>setMode('login'); $('registerMode').onclick=()=>setMode('register');
+function setMode(m){mode=m;$('loginMode').classList.toggle('active',m==='login');$('registerMode').classList.toggle('active',m==='register');$('authSubmit').textContent=m==='login'?'ورود':'ساخت حساب';}
+$('authForm').onsubmit=async e=>{e.preventDefault();try{const d=await api('/api/auth/'+(mode==='login'?'login':'register'),{method:'POST',body:JSON.stringify({username:$('username').value.trim(),password:$('password').value})});token=d.token;localStorage.setItem(KEY,token);user=d.user;await enter();msg('با موفقیت وارد شدی.','ok')}catch(e){msg(e.message,'error')}};
+$('logout').onclick=()=>{token='';user=null;localStorage.removeItem(KEY);if(socket)socket.disconnect();showAuth();msg('از حساب خارج شدی.');};
+async function enter(){
+ const d=await api('/api/auth/me');user=d.user;showApp();connectSocket();await Promise.all([loadRooms(),loadActive(),loadHistory(),loadRank()]);
+}
+function connectSocket(){
+ if(socket)socket.disconnect();
+ if(window.io){socket=io(API,{transports:['websocket','polling'],auth:{token}});socket.on('study:changed',()=>loadActive().catch(()=>{}));}
+}
+function duration(sec){sec=Math.max(0,Math.floor(sec));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return [h,m,s].map(x=>String(x).padStart(2,'0')).join(':')}
+function elapsed(start){return Math.max(0,Math.floor((Date.now()-new Date(start).getTime())/1000))}
+function paintTimer(){ $('myTimer').textContent=activeMine?duration(elapsed(activeMine.started_at)):'00:00:00'; }
+async function loadActive(){
+ const d=await api('/api/study/active');activeMine=d.active.find(x=>Number(x.user_id)===Number(user.id))||null;
+ $('start').disabled=!!activeMine;$('stop').disabled=!activeMine;paintTimer();
+ $('activeList').innerHTML=d.active.length?d.active.map(x=>`<div class="item"><strong>${esc(x.username)} ${Number(x.user_id)===Number(user.id)?'<span class="pill">شما</span>':''}</strong><span>${esc(x.subject)} · ${esc(x.study_type)}</span><div class="muted">مدت: <b data-start="${esc(x.started_at)}">${duration(elapsed(x.started_at))}</b></div></div>`).join(''):'در حال حاضر کسی تایمر فعال ندارد.';
+}
+async function loadRooms(){
+ const d=await api('/api/rooms');const rooms=d.rooms||[];
+ $('studyRoom').innerHTML='<option value="">Global Room</option>'+rooms.filter(r=>!r.is_global&&r.joined).map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('');
+ $('roomList').innerHTML=rooms.map(r=>`<div class="item"><strong>${esc(r.name)} ${r.is_global?'<span class="pill">عمومی جهانی</span>':r.is_private?'<span class="pill">خصوصی</span>':'<span class="pill">عمومی</span>'}</strong><span class="muted">${r.member_count} عضو</span><div class="row" style="margin-top:8px">${r.joined?'<span class="muted">عضو هستی</span>':`<button data-join="${r.id}" data-private="${r.is_private}">عضویت / ورود</button>`}</div></div>`).join('')||'هنوز اتاقی ساخته نشده است.';
+ document.querySelectorAll('[data-join]').forEach(b=>b.onclick=async()=>{try{let inviteCode='';if(b.dataset.private==='true'){inviteCode=prompt('کد دعوت اتاق را وارد کن:')||'';if(!inviteCode)return;}await api('/api/rooms/'+b.dataset.join+'/join',{method:'POST',body:JSON.stringify({inviteCode})});await loadRooms();msg('عضویت در اتاق انجام شد.','ok')}catch(e){msg(e.message,'error')}});
+}
+$('createRoom').onclick=async()=>{try{const name=$('newRoomName').value.trim();const isPrivate=$('newRoomPrivate').value==='true';if(!name)throw Error('نام اتاق را وارد کن.');const d=await api('/api/rooms',{method:'POST',body:JSON.stringify({name,isPrivate})});$('newRoomName').value='';await loadRooms();msg(d.room.invite_code?'اتاق ساخته شد. کد دعوت: '+d.room.invite_code:'اتاق ساخته شد.','ok')}catch(e){msg(e.message,'error')}};
+$('start').onclick=async()=>{try{const roomId=$('studyRoom').value||null;await api('/api/study/start',{method:'POST',body:JSON.stringify({subject:$('subject').value.trim()||'مطالعه',studyType:$('studyType').value,roomId:roomId?Number(roomId):null})});await loadActive();msg('تایمر مطالعه شروع شد.','ok')}catch(e){msg(e.message,'error')}};
+$('stop').onclick=async()=>{try{await api('/api/study/stop',{method:'POST',body:'{}'});await loadActive();await loadHistory();msg('جلسه مطالعه ثبت شد.','ok')}catch(e){msg(e.message,'error')}};
+function localToIso(v){return v?new Date(v).toISOString():''}
+$('manualSave').onclick=async()=>{try{const start=localToIso($('manualStart').value),end=localToIso($('manualEnd').value);if(!start||!end)throw Error('زمان شروع و پایان را وارد کن.');await api('/api/study/manual',{method:'POST',body:JSON.stringify({subject:$('manualSubject').value.trim()||'مطالعه',studyType:$('manualType').value,start,end})});await loadHistory();msg('بازه مطالعه ثبت شد.','ok')}catch(e){msg(e.message,'error')}};
+async function loadHistory(){const d=await api('/api/study/history');$('historyList').innerHTML=d.sessions.length?`<table><thead><tr><th>درس</th><th>نوع</th><th>مدت</th><th>تاریخ شروع</th><th>روش</th></tr></thead><tbody>${d.sessions.map(s=>`<tr><td>${esc(s.subject)}</td><td>${esc(s.study_type)}</td><td>${duration(s.duration_seconds)}</td><td>${new Date(s.started_at).toLocaleString('fa-IR')}</td><td>${s.source==='manual'?'دستی':'تایمر'}</td></tr>`).join('')}</tbody></table>`:'هنوز سابقه‌ای ثبت نشده است.'}
+async function loadRank(){const p=$('rankPeriod').value;const d=await api('/api/leaderboard?period='+p);$('rankList').innerHTML=d.leaderboard.length?`<table><thead><tr><th>رتبه</th><th>کاربر</th><th>زمان مطالعه</th></tr></thead><tbody>${d.leaderboard.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.username)}</td><td>${duration(x.seconds)}</td></tr>`).join('')}</tbody></table>`:'هنوز داده‌ای برای رتبه‌بندی وجود ندارد.'}
+$('loadRank').onclick=()=>loadRank().catch(e=>msg(e.message,'error'));
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));['timer','rooms','history','rank'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==b.dataset.tab));});
+if(tickHandle)clearInterval(tickHandle);tickHandle=setInterval(()=>{paintTimer();document.querySelectorAll('[data-start]').forEach(el=>el.textContent=duration(elapsed(el.dataset.start)));},1000);
+(async()=>{try{const h=await fetch(API+'/api/health').then(r=>r.json());msg(h.ok?'اتصال به API برقرار است.':'سرویس پاسخ معتبر نداد.',h.ok?'ok':'error');if(token){try{await enter()}catch{localStorage.removeItem(KEY);token='';showAuth()}}else showAuth()}catch(e){msg(e.message,'error');showAuth()}})();
+})();
+</script>
+</body>
+</html>
