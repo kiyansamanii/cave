@@ -20,7 +20,10 @@ button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;gap:9px;align-i
 table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:right;padding:10px;border-bottom:1px solid var(--line)}th{color:var(--muted)}
 a{color:#c9beff}.auth{max-width:440px;margin:8vh auto}.foot{color:var(--muted);font-size:11px;text-align:center;margin:25px}
 @media(max-width:600px){.wrap{padding:13px}.panel{padding:14px}.row>*{flex-basis:100%}.top{align-items:flex-start}}
+
+html.embedded .wrap{padding:10px}html.embedded .top,html.embedded .foot{display:none}html.embedded body{min-height:100%;background:transparent}
 </style>
+<script>if(new URLSearchParams(location.search).get("embedded")==="1")document.documentElement.classList.add("embedded")</script>
 </head>
 <body>
 <div class="wrap">
